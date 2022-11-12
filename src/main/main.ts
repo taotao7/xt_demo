@@ -9,7 +9,15 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  shell,
+  ipcMain,
+  Menu,
+  Tray,
+  nativeImage,
+} from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -106,6 +114,28 @@ const createWindow = async () => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
+
+  // 拦截关闭操作
+  mainWindow.on('close', (e) => {
+    if (mainWindow) {
+      mainWindow.hide();
+      e.preventDefault();
+    }
+  });
+
+  // 关闭工具栏
+  Menu.setApplicationMenu(null);
+  // 托盘
+  const tray = new Tray(getAssetPath('icon.png'));
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示',
+      type: 'normal',
+      click: () => mainWindow?.show(),
+    },
+    { label: '退出', type: 'normal', click: () => app.exit() },
+  ]);
+  tray.setContextMenu(contextMenu);
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
